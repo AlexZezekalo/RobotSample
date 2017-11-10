@@ -8,12 +8,12 @@ public class RobotImpl implements IRobot {
     private static final Logger logger = Logger.createLogger(RobotImpl.class);
 
     @Override
-    public void move(Double distance) {
+    public void move(double distance) {
         logger.info("Robot is moving to the distance " + distance + " meters...");
     }
 
     @Override
-    public void turn(Double angle) {
+    public void turn(double angle) {
         logger.info("Robot is turning to the angle " + angle + " degrees...");
     }
 

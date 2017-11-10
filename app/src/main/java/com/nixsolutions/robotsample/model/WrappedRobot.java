@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 
 import com.nixsolutions.robotsdk.IRobot;
 
-public class WrapRobot {
+public class WrappedRobot {
 
     @NonNull
     private String robotUid;
@@ -13,7 +13,7 @@ public class WrapRobot {
     @NonNull
     private IRobot robot;
 
-    public WrapRobot(@NonNull String robotUid, @NonNull IRobot robot) {
+    public WrappedRobot(@NonNull String robotUid, @NonNull IRobot robot) {
         this.robotUid = robotUid;
         this.robot = robot;
     }

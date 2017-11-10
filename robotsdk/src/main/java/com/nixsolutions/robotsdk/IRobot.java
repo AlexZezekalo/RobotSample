@@ -3,9 +3,9 @@ package com.nixsolutions.robotsdk;
 
 public interface IRobot {
 
-    void move(Double distance);
+    void move(double distance);
 
-    void turn(Double angle);
+    void turn(double angle);
 
     void beep();
 

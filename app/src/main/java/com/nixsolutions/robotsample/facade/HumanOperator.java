@@ -4,107 +4,132 @@ import android.support.annotation.NonNull;
 
 import com.annimon.stream.Stream;
 import com.nixsolutions.robotsample.exception.EmptyCommandListException;
-import com.nixsolutions.robotsample.exception.NoRobotExistsException;
-import com.nixsolutions.robotsample.exception.NoRobotFoundException;
+import com.nixsolutions.robotsample.exception.RobotNotExistsException;
+import com.nixsolutions.robotsample.exception.RobotNotFoundException;
 import com.nixsolutions.robotsample.factory.RobotFactory;
-import com.nixsolutions.robotsample.interaction.Beep;
+import com.nixsolutions.robotsample.interaction.BeepInteraction;
 import com.nixsolutions.robotsample.interaction.Interaction;
-import com.nixsolutions.robotsample.interaction.Move;
-import com.nixsolutions.robotsample.interaction.Turn;
-import com.nixsolutions.robotsample.model.WrapRobot;
-import com.nixsolutions.robotsample.repository.IHistoryRepo;
-import com.nixsolutions.robotsample.repository.IRobotRepo;
+import com.nixsolutions.robotsample.interaction.MoveInteraction;
+import com.nixsolutions.robotsample.interaction.TurnInteraction;
+import com.nixsolutions.robotsample.model.WrappedRobot;
+import com.nixsolutions.robotsample.repository.IHistoryRepository;
+import com.nixsolutions.robotsample.repository.IRobotRepository;
 
 import java.util.List;
 
 
-public class HumanOperator implements BasicCommand, HistoryCommand {
+public class HumanOperator implements BasicFacade, HistoryFacade {
 
     @NonNull
-    private IHistoryRepo historyRepo;
+    private final IHistoryRepository historyRepository;
 
     @NonNull
-    private IRobotRepo robotRepo;
+    private final IRobotRepository robotRepository;
 
     @NonNull
-    private RobotFactory robotFactory;
+    private final RobotFactory robotFactory;
 
-    public HumanOperator(@NonNull IHistoryRepo historyRepo, @NonNull IRobotRepo robotRepo,
+    public HumanOperator(@NonNull IHistoryRepository historyRepository, @NonNull IRobotRepository robotRepo,
                          @NonNull RobotFactory robotFactory) {
-        this.historyRepo = historyRepo;
-        this.robotRepo = robotRepo;
+        this.historyRepository = historyRepository;
+        this.robotRepository = robotRepo;
         this.robotFactory = robotFactory;
     }
 
     @Override
-    public void move(String robotId, Double distance) {
-        WrapRobot robot = robotRepo.getRobotById(robotId);
+    public void move(@NonNull String robotId, double distance) throws RobotNotFoundException {
+        WrappedRobot robot = robotRepository.getRobotById(robotId);
         if (robot != null) {
-            Interaction move = new Move(distance);
+            Interaction move = new MoveInteraction(distance);
             move.doInteract(robot);
 
-            historyRepo.addInteraction(move);
+            historyRepository.addInteraction(move);
         }
     }
 
     @Override
-    public void turn(String robotId, Double angle) {
-        WrapRobot robot = robotRepo.getRobotById(robotId);
+    public void turn(@NonNull String robotId, double angle) throws RobotNotFoundException {
+        WrappedRobot robot = robotRepository.getRobotById(robotId);
         if (robot !=null) {
-            Interaction turn = new Turn(angle);
+            Interaction turn = new TurnInteraction(angle);
             turn.doInteract(robot);
 
-            historyRepo.addInteraction(turn);
+            historyRepository.addInteraction(turn);
         }
     }
 
     @Override
-    public void beep(String robotId) {
-        WrapRobot robot = robotRepo.getRobotById(robotId);
+    public void beep(@NonNull String robotId) throws RobotNotFoundException {
+        WrappedRobot robot = robotRepository.getRobotById(robotId);
         if (robot != null) {
-            Interaction beep = new Beep();
+            Interaction beep = new BeepInteraction();
             beep.doInteract(robot);
 
-            historyRepo.addInteraction(beep);
+            historyRepository.addInteraction(beep);
         }
     }
 
+    @NonNull
     @Override
     public String createNewRobot() {
-        WrapRobot wrapRobot = robotFactory.createNewRobot();
-        robotRepo.addNewRobot(wrapRobot);
-        return wrapRobot.getRobotUid();
+        WrappedRobot wrappedRobot = robotFactory.createNewRobot();
+        robotRepository.saveNewRobot(wrappedRobot);
+        return wrappedRobot.getRobotUid();
     }
 
     @Override
-    public void repeatAllCommandsByAllRobots() throws NoRobotExistsException, EmptyCommandListException,
-            NoRobotFoundException{
-        List<String> robotsIds = Stream.of(robotRepo.getAllRobots()).map(WrapRobot::getRobotUid).toList();
-        repeatAllCommands(robotsIds);
+    public void repeatAllInteractionsForAllRobots() throws RobotNotExistsException, EmptyCommandListException,
+            RobotNotFoundException{
+        List<String> robotsIds = Stream.of(robotRepository.getAllRobots()).map(WrappedRobot::getRobotUid).toList();
+        repeatAll(robotsIds);
     }
 
     @Override
-    public void repeatAllCommands(@NonNull List<String> robotUids) throws NoRobotExistsException,
-            EmptyCommandListException, NoRobotFoundException {
-        if (robotUids.isEmpty()) {
-            throw new NoRobotExistsException();
+    public void repeatAllInteractions(@NonNull String... robotUids) throws EmptyCommandListException,
+            RobotNotExistsException, RobotNotFoundException {
+        List<String> robotsIds = Stream.of(robotUids).toList();
+        repeatAll(robotsIds);
+    }
+
+    @Override
+    public void repeatAllInteractions(@NonNull List<WrappedRobot> robots) throws EmptyCommandListException,
+            RobotNotExistsException, RobotNotFoundException {
+        if (robots.isEmpty()) {
+            throw new RobotNotExistsException();
         } else {
-            List<Interaction> allInteractions = historyRepo.getAllInteractions();
+            List<Interaction> allInteractions = historyRepository.getAllInteractions();
 
-            for (String robotUid : robotUids) {
-                WrapRobot wrapRobot = robotRepo.getRobotById(robotUid);
-                if (wrapRobot != null) {
-                    if (!allInteractions.isEmpty()) {
-                        for (Interaction allInteraction : allInteractions) {
-                            allInteraction.doInteract(wrapRobot);
-                        }
-                    } else {
-                        throw new EmptyCommandListException();
+            if (allInteractions.isEmpty()) {
+                throw new EmptyCommandListException();
+            } else {
+                for (WrappedRobot wrappedRobot : robots) {
+                    for (Interaction allInteraction : allInteractions) {
+                        allInteraction.doInteract(wrappedRobot);
                     }
-                } else {
-                    throw new NoRobotFoundException();
+                }
+            }
+        }
+
+    }
+
+    private void repeatAll(@NonNull List<String> robotUids) throws RobotNotExistsException,
+            EmptyCommandListException, RobotNotFoundException {
+        if (robotUids.isEmpty()) {
+            throw new RobotNotExistsException();
+        } else {
+            List<Interaction> allInteractions = historyRepository.getAllInteractions();
+
+            if (allInteractions.isEmpty()) {
+                throw new EmptyCommandListException();
+            } else {
+                for (String robotUid : robotUids) {
+                    WrappedRobot wrappedRobot = robotRepository.getRobotById(robotUid);
+                    for (Interaction allInteraction : allInteractions) {
+                        allInteraction.doInteract(wrappedRobot);
+                    }
                 }
             }
         }
     }
+
 }

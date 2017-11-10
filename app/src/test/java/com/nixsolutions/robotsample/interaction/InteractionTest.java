@@ -1,7 +1,7 @@
 package com.nixsolutions.robotsample.interaction;
 
 
-import com.nixsolutions.robotsample.model.WrapRobot;
+import com.nixsolutions.robotsample.model.WrappedRobot;
 import com.nixsolutions.robotsdk.IRobot;
 
 import org.junit.Before;
@@ -19,40 +19,41 @@ public class InteractionTest {
     private static final String UID = "mock_uid";
 
     @Mock
-    IRobot testRobot;
+    private IRobot mockRobot;
 
-    WrapRobot wrapRobot;
+    private WrappedRobot wrappedRobot;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Before
     public void setUp() {
-        wrapRobot = new WrapRobot(UID, testRobot);
+        wrappedRobot = new WrappedRobot(UID, mockRobot);
     }
 
     @Test
     public void moveTest() throws Exception {
-        Move move = new Move(10D);
-        move.doInteract(wrapRobot);
+        Interaction move = new MoveInteraction(10d);
+        move.doInteract(wrappedRobot);
 
-        verify(testRobot).move(eq(10D));
+        verify(mockRobot).move(eq(10d));
     }
 
     @Test
     public void turnTest() throws Exception {
-        Turn turn = new Turn(180D);
-        turn.doInteract(wrapRobot);
+        double angle = 180d;
+        Interaction turn = new TurnInteraction(angle);
+        turn.doInteract(wrappedRobot);
 
-        verify(testRobot).turn(eq(180D));
+        verify(mockRobot).turn(eq(angle));
     }
 
     @Test
     public void beepTest() throws Exception {
-        Beep beep = new Beep();
-        beep.doInteract(wrapRobot);
+        Interaction beep = new BeepInteraction();
+        beep.doInteract(wrappedRobot);
 
-        verify(testRobot).beep();
+        verify(mockRobot).beep();
     }
 
 

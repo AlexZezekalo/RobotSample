@@ -1,8 +1,9 @@
 package com.nixsolutions.robotsample.interaction;
 
+import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 
-import com.nixsolutions.robotsample.model.WrapRobot;
+import com.nixsolutions.robotsample.model.WrappedRobot;
 
 import java.util.UUID;
 
@@ -28,17 +29,18 @@ public abstract class BaseInteraction implements Interaction {
         this.robotUid = robotUid;
     }
 
-    @NonNull
-    public String getInteractionUid() {
-        return interactionUid;
-    }
-
     public void setInteractionUid(@NonNull String interactionUid) {
         this.interactionUid = interactionUid;
     }
 
     @Override
-    public void doInteract(@NonNull WrapRobot robot) {
+    @CallSuper
+    public void doInteract(@NonNull WrappedRobot robot) {
         setRobotUid(robot.getRobotUid());
+    }
+
+    @Override
+    public String getInteractionId() {
+        return interactionUid;
     }
 }

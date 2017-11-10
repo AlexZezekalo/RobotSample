@@ -7,7 +7,7 @@ import com.nixsolutions.robotsample.interaction.Interaction;
 
 import java.util.List;
 
-public interface IHistoryRepo {
+public interface IHistoryRepository {
 
     void addInteraction(@NonNull Interaction interaction);
 

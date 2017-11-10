@@ -2,13 +2,13 @@ package com.nixsolutions.robotsample.interaction;
 
 import android.support.annotation.NonNull;
 
-import com.nixsolutions.robotsample.model.WrapRobot;
+import com.nixsolutions.robotsample.model.WrappedRobot;
 
 
-public class Beep extends BaseInteraction {
+public class BeepInteraction extends BaseInteraction {
 
     @Override
-    public void doInteract(@NonNull WrapRobot robot) {
+    public void doInteract(@NonNull WrappedRobot robot) {
         super.doInteract(robot);
         robot.getRobot().beep();
     }
